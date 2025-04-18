@@ -1,8 +1,9 @@
 # PCB workflow automation
 This repo contains various tools for automating and simplifying
-workflows around (KiCad) PCB designs within 3devo. This includes
-automation using Github workflows, but also tools for helping the local
-development workflow.
+workflows around (KiCad) PCB designs (originaly developed within 3devo,
+this version is modified to be more generic). This includes automation
+using Github workflows, but also tools for helping the local development
+workflow.
 
 This repository is made public under a creative commons license (see the
 end of this file for details) in the hope that it will be useful to
@@ -25,7 +26,7 @@ To use this repo in a PCB design repo:
  - Include this repo as a submodule in the PCB project repo (typically
    directly in the root):
    ```
-   git submodule add https://github.com/3devo/PCB-workflows.git
+   git submodule add https://github.com/matthijskooijman/PCB-workflows.git
    ```
  - Ensure a KiCad project is already created (typically in a `PCB`
    subdirectory).
@@ -189,12 +190,10 @@ values (that are normally shown in the title block and can be set in
 KiCad using File -> Page Setup...), so those are ignored and should be
 kept empty to prevent confusion.
 
-The default sheet set up by the script contains a 3devo logo for use in
-3devo projects. Alternatively, the
-`sheets/versioned_sheet_no_logo.kicad_wks`file has the logo omitted. To
-use it, reference it in the File -> Page Settings dialog of the
-schematic and PCB editor. If you want to further customize the sheet,
-you can make a copy in your own repository and reference that instead.
+The default sheet set up by the script is stored in this repo.
+3devo projects. If you want to customize the sheet, you can make a copy
+in your own repository and reference that instead (via File -> Page
+Settings in both schematic and PCB editor)
 
 ### Workflows
 The project repo contains a small `workflow.yml file`, which calls the
