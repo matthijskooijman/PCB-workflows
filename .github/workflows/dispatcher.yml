@@ -195,7 +195,9 @@ jobs:
         if: env.IS_TAG_PUSH == 'true'
         working-directory: ${{ env.OUT_DIR}}
         run: |
-          apt update && apt install zip
+          if ! command -v zip; then
+            apt update && apt install zip
+          fi
           for f in *; do
             if [ -d "$f" ]; then
               zip -r "$f.zip" "$f"
