@@ -222,17 +222,7 @@ When putting the board revision on the silkscreen, if the
 the title sheet versioning, being automatically populated from the tag
 version
 
-Note that this does not currently work for local kibot runs due to [this
-issue](https://github.com/INTI-CMNB/KiBot/issues/441, the workflow has
-a workaround). You can make it work locally as well by running:
-
-    sed -i '/^ *(property "\(BOARD_REVISION\|COMPONENTS_DATE\|GIT_REVISION_INFO\|VARIANT\)" /d' *.kicad_pcb
-
-This strips the text variable cache from the pcb file, to force using
-the modified text variables. This cache will be added again when opening
-the board setup window in the PCB editor.
-
-Also note that text variables cannot be used on copper/keepout layers,
+Note that text variables cannot be used on copper/keepout layers,
 since that would typically require a zone fill, which should be done
 locally before committing.
 

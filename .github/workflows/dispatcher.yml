@@ -170,12 +170,6 @@ jobs:
             find "$OUT_DIR_ABS" -depth -type d -exec rmdir --ignore-fail-on-non-empty {} \;
           ) 2>&1 | tee "$OUT_DIR_ABS/kibot_output.txt"
 
-      # Work around https://github.com/INTI-CMNB/KiDiff/pull/6
-      - name: Workaround for unneeded leftover diff PNGs
-        if: ${{ success() || failure() }}
-        run: |
-          rm -f "$OUT_DIR/Diff/"*/*.png
-
       - name: Upload result
         uses: actions/upload-artifact@v4
         # Run even if kibot failed (e.g. because of outdated zone fills)

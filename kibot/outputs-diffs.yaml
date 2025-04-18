@@ -24,8 +24,6 @@ outputs:
     new_type: git
     new: HEAD
 - name: diff_pcb_since_last_release
-  # Note: This might not currently (kibot 1.6.2) work as expected, see
-  # https://github.com/INTI-CMNB/KiBot/issues/430
   comment:  PCB diff of HEAD against last release (so all committed changes since last release)
   type: diff
   dir: Diff/Since-last-release
@@ -68,8 +66,6 @@ outputs:
     new_type: git
     new: HEAD
 - name: diff_sch_since_last_release
-  # Note: This might not currently (kibot 1.6.2) work as expected, see
-  # https://github.com/INTI-CMNB/KiBot/issues/430
   comment:  PCB diff of HEAD against last release (so all committed changes since last release)
   type: diff
   dir: Diff/Since-last-release
