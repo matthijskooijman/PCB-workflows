@@ -7,4 +7,4 @@ REPO_ROOT=$(cd "${SUBMODULE_ROOT}" && git rev-parse --show-superproject-working-
 
 # Update SHA in dispatcher
 SUBMODULE_SHA=$(git --git-dir "$SUBMODULE_ROOT/.git" rev-parse HEAD)
-sed -i "s/dispatcher.yml@.*/dispatcher.yml@$SUBMODULE_SHA/" "$REPO_ROOT/.github/workflows/workflow.yml"
+sed -i '' "s/dispatcher.yml@.*/dispatcher.yml@$SUBMODULE_SHA/" "$REPO_ROOT/.github/workflows/workflow.yml"

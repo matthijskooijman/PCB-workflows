@@ -3,6 +3,16 @@
 KICAD_PRO=$1
 SUBMODULE_ROOT=$(cd $(dirname "$0") && git rev-parse --show-toplevel)
 
+# replacement for "realpath --relative-to=" for MacOS compatibility
+function relpath () {
+    local common path up
+    common=${1%/} path=${2%/}/
+    while test "${path#"$common"/}" = "$path"; do
+        common=${common%/*} up=../$up
+    done
+    path=$up${path#"$common"/}; path=${path%/}; printf %s "${path:-.}"
+}
+
 #$(false)
 
 #exit 2
@@ -40,15 +50,15 @@ echo "to point to files in $SUBMODULE_ROOT"
 echo "Press enter to continue, or control-C to abort"
 read FOO
 
-SUBMODULE_RELATIVE=$(realpath --relative-to="$KICAD_DIR" "$SUBMODULE_ROOT")
+SUBMODULE_RELATIVE=$(relpath "$KICAD_DIR" "$SUBMODULE_ROOT")
 
 # This does very simple matching, to make minimal changes to the file
 # (e.g. using jq for more advanced edits also changes the number of
 # decimal digits in numbers...). This does mean that if the strings
 # searched for are not present with exactly this indentation etc., this
 # will not work.
-sed -i "s#^\(    \"page_layout_descr_file\": \)\"[^\"]*\"#\1\"$SUBMODULE_RELATIVE/sheets/versioned_sheet_no_logo.kicad_wks\"#" "$KICAD_PRO"
-sed -i 's#^\(  "text_variables": \){}#\1{\n    "BOARD_REVISION": "dev",\n    "COMPONENTS_DATE": "dev",\n    "GIT_REVISION_INFO": "",\n    "SHEETPATH": "N/A",\n    "VARIANT": ""\n  }#' "$KICAD_PRO"
+sed -i '' "s#^\(    \"page_layout_descr_file\": \)\"[^\"]*\"#\1\"$SUBMODULE_RELATIVE/sheets/versioned_sheet_no_logo.kicad_wks\"#" "$KICAD_PRO"
+sed -i '' 's#^\(  "text_variables": \){}#\1{\n    "BOARD_REVISION": "dev",\n    "COMPONENTS_DATE": "dev",\n    "GIT_REVISION_INFO": "",\n    "SHEETPATH": "N/A",\n    "VARIANT": ""\n  }#' "$KICAD_PRO"
 
 # Sanity check to see if it worked
 if [ "$(grep "versioned_sheet_no_logo.kicad_wks\|GIT_REVISION_INFO" "$KICAD_PRO" --count)" -ne 3 ]; then
@@ -60,32 +70,32 @@ fi
 # Drop any existing dates and revisions, since these are no longer
 # displayed by the custom title sheet / page layout, so better to remove
 # them.
-sed -i '/^ *(date /d;/^ *(rev /d;' "$KICAD_DIR"/*.kicad_pcb "$KICAD_DIR"/*.kicad_sch
+echo sed -i '' '/^ *(date /d;/^ *(rev /d;' "$KICAD_DIR"/*.kicad_pcb "$KICAD_DIR"/*.kicad_sch
 
-# Use --interactive to prompt before overwriting
-cp --interactive "$SUBMODULE_ROOT/examples/gitignore" "$REPO_ROOT/.gitignore"
-cp --interactive "$SUBMODULE_ROOT/examples/gitattributes" "$REPO_ROOT/.gitattributes"
+# Use -i to prompt before overwriting
+cp -i "$SUBMODULE_ROOT/examples/gitignore" "$REPO_ROOT/.gitignore"
+cp -i "$SUBMODULE_ROOT/examples/gitattributes" "$REPO_ROOT/.gitattributes"
 
 mkdir -p "$REPO_ROOT/.github/workflows/"
-cp --interactive "$SUBMODULE_ROOT/examples/workflow.yml" "$REPO_ROOT/.github/workflows/"
+cp -i "$SUBMODULE_ROOT/examples/workflow.yml" "$REPO_ROOT/.github/workflows/"
 
 # Update SHA in dispatcher
 "$SUBMODULE_ROOT/tools/update-workflow-version.sh"
 
-cp --interactive "$SUBMODULE_ROOT/examples/config.kibot.yaml" "$KICAD_DIR/"
+cp -i "$SUBMODULE_ROOT/examples/config.kibot.yaml" "$KICAD_DIR/"
 
 mkdir -p "$REPO_ROOT/kibot"
-cp --interactive "$SUBMODULE_ROOT/examples/kibot-project-config.yaml" "$REPO_ROOT/kibot/"
+cp -i "$SUBMODULE_ROOT/examples/kibot-project-config.yaml" "$REPO_ROOT/kibot/"
 
-cp --interactive "$SUBMODULE_ROOT/examples/Changelog.md" "$REPO_ROOT/"
+cp -i "$SUBMODULE_ROOT/examples/Changelog.md" "$REPO_ROOT/"
 
 EXPECTED_SUBMODULE_SUBDIR="PCB-workflows"
 EXPECTED_KICAD_SUBDIR="PCB"
 
-if [ "$(realpath --relative-to="$REPO_ROOT" "$SUBMODULE_ROOT")" != "$EXPECTED_SUBMODULE_SUBDIR" ]; then
+if [ "$(relpath "$REPO_ROOT" "$SUBMODULE_ROOT")" != "$EXPECTED_SUBMODULE_SUBDIR" ]; then
 	echo "Your submodule is not at $EXPECTED_SUBMODULE_SUBDIR, you might need to modify the workflow file to match"
 fi
 
-if [ "$(realpath --relative-to="$REPO_ROOT" "$KICAD_DIR")" != "$EXPECTED_KICAD_SUBDIR" ]; then
+if [ "$(relpath "$REPO_ROOT" "$KICAD_DIR")" != "$EXPECTED_KICAD_SUBDIR" ]; then
 	echo "Your submodule is not at $EXPECTED_KICAD_SUBDIR, you might need to modify the workflow file to match"
 fi
