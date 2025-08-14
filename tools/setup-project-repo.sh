@@ -70,7 +70,7 @@ fi
 # Drop any existing dates and revisions, since these are no longer
 # displayed by the custom title sheet / page layout, so better to remove
 # them.
-echo sed -i '' '/^ *(date /d;/^ *(rev /d;' "$KICAD_DIR"/*.kicad_pcb "$KICAD_DIR"/*.kicad_sch
+sed -i '' '/^ *(date /d;/^ *(rev /d;' "$KICAD_DIR"/*.kicad_pcb "$KICAD_DIR"/*.kicad_sch
 
 # Use -i to prompt before overwriting
 cp -i "$SUBMODULE_ROOT/examples/gitignore" "$REPO_ROOT/.gitignore"
