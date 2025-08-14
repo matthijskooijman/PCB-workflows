@@ -3,7 +3,13 @@
 KICAD_PRO=$1
 SUBMODULE_ROOT=$(cd $(dirname "$0") && git rev-parse --show-toplevel)
 
-# replacement for "realpath --relative-to=" for MacOS compatibility
+# For Linux and MacOS compatibility, use a backup extension with sed.
+# The sed -i option requires a argument on MacOS. It can be empty, but on Linux an
+# argument must be glued to the -i, and if you do that, it cannot be
+# empty on MacOS. So we let sed make backups and then just remove them.
+SED_BACKUP_EXT=.pcb-workflows-backup
+
+# Replacement for "realpath --relative-to=" for MacOS compatibility
 function relpath () {
     local common path up
     common=${1%/} path=${2%/}/
@@ -57,8 +63,9 @@ SUBMODULE_RELATIVE=$(relpath "$KICAD_DIR" "$SUBMODULE_ROOT")
 # decimal digits in numbers...). This does mean that if the strings
 # searched for are not present with exactly this indentation etc., this
 # will not work.
-sed -i '' "s#^\(    \"page_layout_descr_file\": \)\"[^\"]*\"#\1\"$SUBMODULE_RELATIVE/sheets/versioned_sheet_no_logo.kicad_wks\"#" "$KICAD_PRO"
-sed -i '' 's#^\(  "text_variables": \){}#\1{\n    "BOARD_REVISION": "dev",\n    "COMPONENTS_DATE": "dev",\n    "GIT_REVISION_INFO": "",\n    "SHEETPATH": "N/A",\n    "VARIANT": ""\n  }#' "$KICAD_PRO"
+sed -i"$SED_BACKUP_EXT" "s#^\(    \"page_layout_descr_file\": \)\"[^\"]*\"#\1\"$SUBMODULE_RELATIVE/sheets/versioned_sheet_no_logo.kicad_wks\"#" "$KICAD_PRO"
+sed -i"$SED_BACKUP_EXT" 's#^\(  "text_variables": \){}#\1{\n    "BOARD_REVISION": "dev",\n    "COMPONENTS_DATE": "dev",\n    "GIT_REVISION_INFO": "",\n    "SHEETPATH": "N/A",\n    "VARIANT": ""\n  }#' "$KICAD_PRO"
+rm "$KICAD_PRO$SED_BACKUP_EXT"
 
 # Sanity check to see if it worked
 if [ "$(grep "versioned_sheet_no_logo.kicad_wks\|GIT_REVISION_INFO" "$KICAD_PRO" --count)" -ne 3 ]; then
@@ -70,7 +77,8 @@ fi
 # Drop any existing dates and revisions, since these are no longer
 # displayed by the custom title sheet / page layout, so better to remove
 # them.
-sed -i '' '/^ *(date /d;/^ *(rev /d;' "$KICAD_DIR"/*.kicad_pcb "$KICAD_DIR"/*.kicad_sch
+sed -i"$SED_BACKUP_EXT" '/^ *(date /d;/^ *(rev /d;' "$KICAD_DIR"/*.kicad_pcb "$KICAD_DIR"/*.kicad_sch
+rm "$KICAD_DIR/"*".kicad_pcb$SED_BACKUP_EXT" "$KICAD_DIR/"*".kicad_sch$SED_BACKUP_EXT"
 
 # Use -i to prompt before overwriting
 cp -i "$SUBMODULE_ROOT/examples/gitignore" "$REPO_ROOT/.gitignore"
