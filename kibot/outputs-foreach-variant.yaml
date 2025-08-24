@@ -14,36 +14,55 @@ outputs:
   type: pdf_sch_print
   dir: .
 
+# TODO: Improve blender rendering, see
+# https://github.com/INTI-CMNB/KiBot/discussions/858
 - name: render_3d_top
   comment: 3D view from top
-  type: render_3d
+  type: blender_export
   dir: 3D
   options:
-    width: 1920
-    height: 1080
-    ray_tracing: true
-    orthographic: true
+    render_options:
+      samples: 20
+      resolution_x: 1920
+      resolution_y: 1080
+    point_of_view:
+      view: top
+    outputs:
+      - type: blender
+      - type: render
+
 - name: render_3d_30deg
   comment: 3D view from 30 degrees
-  type: render_3d
+  type: blender_export
   dir: 3D
-  output_id: 30deg
   options:
-    width: 1920
-    height: 1080
-    ray_tracing: true
-    rotate_x: 3
-    rotate_z: -2
+    render_options:
+      samples: 20
+      resolution_x: 1920
+      resolution_y: 1080
+    point_of_view:
+      file_id: 30deg
+      rotate_x: 30
+      rotate_z: -20
+    outputs:
+      - type: blender
+      - type: render
+
 - name: render_3d_bottom
   comment: 3D view from bottom
-  type: render_3d
+  type: blender_export
   dir: 3D
   options:
-    width: 1920
-    height: 1080
-    ray_tracing: true
-    orthographic: true
-    view: bottom
+    render_options:
+      samples: 20
+      resolution_x: 1920
+      resolution_y: 1080
+    point_of_view:
+      view: bottom
+    outputs:
+      - type: blender
+      - type: render
+
 - name: basic_step
   comment: 3D model in STEP format
   type: export_3d
