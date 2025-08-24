@@ -4,7 +4,8 @@ global:
   # Make sure that set_text_variables is only applied during the kibot
   # run, but does not pollute the working copy afterwards
   restore_project: true
-  invalidate_pcb_text_cache: 'yes'
+  pcb_finish: ENIG
+  default_resistor_tolerance: 5
 
 preflight:
   set_text_variables:
