@@ -26,6 +26,8 @@ on:
 
 env:
   OUT_DIR: kibot-output
+  # This duplicates OUT_DIR because of https://stackoverflow.com/a/72209113/740048
+  OUT_CHANGELOG: kibot-output/Changelog.md
   RELEASE_BODY: release-body-text.md
   IS_TAG_PUSH: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
   IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
@@ -171,6 +173,12 @@ jobs:
             find "$OUT_DIR_ABS" -depth -type d -exec rmdir --ignore-fail-on-non-empty {} \;
           ) 2>&1 | tee "$OUT_DIR_ABS/kibot_output.txt"
 
+      # This puts the changelog in the artifact to allow including it in
+      # the release
+      - name: Copy changelog
+        run: |
+          cp "${{ inputs.changelog-file }}" "${OUT_CHANGELOG}"
+
       - name: Upload result
         uses: actions/upload-artifact@v4
         # Run even if kibot failed (e.g. because of outdated zone fills)
@@ -180,20 +188,28 @@ jobs:
           name: output
           path: ${{ env.OUT_DIR }}
 
-      - name: Generate changelog
-        if: env.IS_TAG_PUSH == 'true'
+
+  create_release:
+    needs: build_and_publish
+    runs-on: ubuntu-latest
+    # env is not available here, so this inlines IS_TAG_PUSH
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+    permissions:
+      contents: write
+    steps:
+      - name: Download result
+        uses: actions/download-artifact@v5
+        with:
+          name: output
+          path: ${{ env.OUT_DIR }}
+
+      # Copy a 3D image out of the 3D image to put in the release body
+      - name: Extract 3D preview
+        working-directory: ${{ env.OUT_DIR}}
         run: |
-          # This assumes the first line is the title, followed by
-          # a header underline (===) and the changelog body. Then
-          # everything up to including the next header is selected,
-          # using head to remove the next header again. Two empty lines
-          # are added to be removed again if there is no next header
-          # (first release).
-          (echo -n "RELEASE_TITLE="; head -n 1 "${{ inputs.changelog-file }}") > "${GITHUB_ENV}"
-          (cat "${{ inputs.changelog-file }}"; echo; echo) | sed -n '3,/^===/p' | head -n -2 > "${RELEASE_BODY}"
+          cp 3D/*_top.png Board.png
 
       - name: Zip subdirectories
-        if: env.IS_TAG_PUSH == 'true'
         working-directory: ${{ env.OUT_DIR}}
         run: |
           if ! command -v zip; then
@@ -207,10 +223,28 @@ jobs:
           done
 
       - name: Create release
-        if: env.IS_TAG_PUSH == 'true'
+        id: create_release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ env.OUT_DIR }}/*,${{inputs.changelog-file}}"
+          artifacts: "${{ env.OUT_DIR }}/*"
+          artifactErrorsFailBuild: true
+
+      - name: Generate changelog
+        run: |
+          # This assumes the first line is the title, followed by
+          # a header underline (===) and the changelog body. Then
+          # everything up to including the next header is selected,
+          # using head to remove the next header again. Two empty lines
+          # are added to be removed again if there is no next header
+          # (first release).
+          (echo -n "RELEASE_TITLE="; head -n 1 "${OUT_CHANGELOG}") > "${GITHUB_ENV}"
+          (cat "${OUT_CHANGELOG}"; echo; echo) | sed -n '3,/^===/p' | head -n -2 > "${RELEASE_BODY}"
+          echo >> "${RELEASE_BODY}"
+          echo "![Board preview](${{ fromJson(steps.create_release.outputs.assets)['Board.png'] }})" >> "${RELEASE_BODY}"
+
+      - name: Add changelog to release
+        uses: ncipollo/release-action@v1
+        with:
           name: ${{ env.RELEASE_TITLE }}
           bodyFile: ${{ env.RELEASE_BODY }}
-          artifactErrorsFailBuild: true
+          allowUpdates: true
