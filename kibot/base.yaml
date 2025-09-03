@@ -12,15 +12,19 @@ preflight:
     - name: BOARD_REVISION
       # Take the board revision part of the tag, and check for modifications since
       command: |
-        TAG=$(git describe --tags --abbrev=0)
-        echo -n $TAG | awk -F/ '{printf($2)}'
+        set -e
+        TAG=$(git describe --tags --abbrev=0 || true)
+        if [ -z "$TAG" ]; then echo "notag"; exit 0; fi
+        echo -n $TAG | awk -F/ '{if (NF < 2 || NF > 3 || $2 == "") { print("Invalid tag format"); exit 1 } else { printf($2)}}'
         if ! git diff --quiet ${TAG}; then
           echo " — modified"
         fi
     - name: COMPONENTS_DATE
+      # Take the components date part of the tag, and check for modifications since
       command: |
-        # Take the components part of the tag, and check for modifications since
-        TAG=$(git describe --tags --abbrev=0)
+        set -e
+        TAG=$(git describe --tags --abbrev=0 || true)
+        if [ -z "$TAG" ]; then echo "notag"; exit 0; fi
         echo -n $TAG | awk -F/ '{printf($3)}'
         if ! git diff --quiet ${TAG}; then
           echo " — modified"

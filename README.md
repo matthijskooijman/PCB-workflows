@@ -67,7 +67,10 @@ format), and then tag the commit.
 The tag must contain three parts, separated by slashes. For example:
 `Devoboard/V1.6/2023-02-01`. The parts are:
  - The board name. This is just descriptive, but ideally should not
-   change between commits for the same board.
+   change between tags for the same board. The board name is not used by
+   the automation directly, but is added to support usecases like mixing
+   multiple boards, or a board design and supporting software, in
+   a single repository and ensure tags are explicit.
  - The board version. This reflects the board design itself, so it
    should be updated whenever the board layers are changed. It should be
    kept the same when only components are changed (with pin-compatible
